@@ -78,11 +78,11 @@ class EventView extends BaseView {
     super();
     this.event = event;
 
-    this._arrow = this.getElement().querySelector('.event__rollup-btn');
+    this._arrow = this.getElement.querySelector('.event__rollup-btn');
     this._arrow.addEventListener('click', this.onArrowClick);
   }
 
-  getTemplate() {
+  get getTemplate() {
     return createTripEventTemplate(this.event);
   }
 }

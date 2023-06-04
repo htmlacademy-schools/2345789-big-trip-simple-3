@@ -4,7 +4,7 @@ class EventModel {
   event = {};
 
   constructor(type, destination, dateFrom, dateTo, basePrice, offers = undefined) {
-    if (type in EVENT_TYPES) {
+    if (EVENT_TYPES.includes(type)) {
       this.event.type = type;
     } else {
       throw new Error('Invalid type.');

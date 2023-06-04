@@ -164,7 +164,7 @@ const ADD_EVENT_TEMPLATE = `
 `;
 
 class AddEventView extends BaseView {
-  getTemplate() {
+  get getTemplate() {
     return ADD_EVENT_TEMPLATE;
   }
 }

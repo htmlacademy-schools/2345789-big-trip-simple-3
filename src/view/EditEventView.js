@@ -157,7 +157,7 @@ const EDIT_EVENT_TEMPLATE = `
 `;
 
 class EditEventView extends BaseView {
-  getTemplate() {
+  get getTemplate() {
     return EDIT_EVENT_TEMPLATE;
   }
 }

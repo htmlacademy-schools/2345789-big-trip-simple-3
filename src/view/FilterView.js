@@ -17,7 +17,7 @@ const FILTER_TEMPLATE = `
 `;
 
 class FilterView extends BaseView {
-  getTemplate() {
+  get getTemplate() {
     return FILTER_TEMPLATE;
   }
 }

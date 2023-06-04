@@ -121,7 +121,7 @@ export function generateEvents(numberOfEvents) {
       dateTo,
       getRandomInt(500, 2000),
       idOffers
-    ).getEvent());
+    ).getEvent);
   }
   return events;
 }

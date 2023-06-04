@@ -10,14 +10,14 @@ const EVENT_ITEM_TEMPLATE = `
 `;
 
 class EventListView extends BaseView {
-  getTemplate() {
+  get getTemplate() {
     return EVENT_LIST_TEMPLATE;
   }
 
   addItem(component) {
     const item = createElement(EVENT_ITEM_TEMPLATE);
     render(component, item);
-    this.getElement().append(item);
+    this.getElement.append(item);
   }
 }
 
