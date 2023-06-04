@@ -30,7 +30,7 @@ const SORT_TEMPLATE = `
 `;
 
 class SortView extends BaseView {
-  getTemplate() {
+  get getTemplate() {
     return SORT_TEMPLATE;
   }
 }

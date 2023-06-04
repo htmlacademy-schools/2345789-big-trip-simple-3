@@ -2,8 +2,9 @@ import dayjs from 'dayjs';
 import BaseView from './BaseView.js';
 import {destinations, getOffer} from '../mock/event.js';
 import {capitalizeFirstLetter, getDate, getHumanDate, getDatetime, getHumanTime} from '../utils.js';
+import EventFormView from './EventFormView.js';
 
-const createTripEventTemplate = (event) => {
+const createEventTemplate = (event) => {
   const dateTo = dayjs(event.dateTo);
   const dateFrom = dayjs(event.dateFrom);
   let destination;
@@ -78,12 +79,25 @@ class EventView extends BaseView {
     super();
     this.event = event;
 
-    this._arrow = this.getElement().querySelector('.event__rollup-btn');
-    this._arrow.addEventListener('click', this.onArrowClick);
+    this._arrow = this.getElement.querySelector('.event__rollup-btn');
+    this._arrow.addEventListener('click', () => this.onArrowClick());
   }
 
-  getTemplate() {
-    return createTripEventTemplate(this.event);
+  get getTemplate() {
+    return createEventTemplate(this.event);
+  }
+
+  get getForm() {
+    if (!this.form) {
+      this.form = new EventFormView(this.event);
+      this.form.setTripEvent(this);
+    }
+    return this.form;
+  }
+
+  onArrowClick() {
+    this.element.replaceWith(this.getForm.getElement);
+    this.form = undefined;
   }
 }
 
