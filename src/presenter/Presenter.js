@@ -9,7 +9,6 @@ class Presenter {
     this.container = container;
     this.events = generateEvents(getRandomInt(1, 3));
     this.eventViews = this.events.map((data) => new EventView(data));
-
     render(new SortView(), this.container);
     for (let i = 0; i < this.eventViews.length; i++) {
       render(this.eventViews[i], this.container);

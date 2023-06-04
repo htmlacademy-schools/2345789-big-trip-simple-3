@@ -68,7 +68,7 @@ function generatePictures() {
   const pictures = new Array(numberOfPictures);
   for (let i = 0; i < pictures.length; i++) {
     pictures[i] = {
-      src: `http://picsum.photos/248/152?r=${getRandomInt(0, Number.MAX_SAFE_INTEGER)}`,
+      src: `http://picsum.photos/300/200?r=${getRandomInt(0, Number.MAX_SAFE_INTEGER)}`,
       description: getLoremIpsumSentences(getRandomInt(1, 11))
     };
   }
