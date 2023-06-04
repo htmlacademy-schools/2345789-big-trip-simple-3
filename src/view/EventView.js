@@ -5,8 +5,8 @@ import {capitalizeFirstLetter, getDate, getHumanDate, getDatetime, getHumanTime}
 import EventFormView from './EventFormView.js';
 
 const createEventTemplate = (event) => {
-  const dateTo = dayjs(event.dateTo);
-  const dateFrom = dayjs(event.dateFrom);
+  const dateTo = dayjs(event.date_to);
+  const dateFrom = dayjs(event.date_from);
   let destination;
   for (let i = 0; i < destinations.length; i++) {
     if (destinations[i].id === event.destination) {
