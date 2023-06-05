@@ -2,9 +2,9 @@ import {render} from './framework/render.js';
 import Presenter from './presenter/Presenter.js';
 import FilterView from './view/FilterView.js';
 
-const tripFiltersSection = document.querySelector('.trip-controls__filters');
-const tripEventsSection = document.querySelector('.trip-events');
+const filtersSection = document.querySelector('.trip-controls__filters');
+const eventsSection = document.querySelector('.trip-events');
 const presenter = new Presenter();
 
-render(new FilterView(), tripFiltersSection);
-presenter.init(tripEventsSection);
+render(new FilterView(), filtersSection);
+presenter.init(eventsSection);
