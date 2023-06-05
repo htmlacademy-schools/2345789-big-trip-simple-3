@@ -93,7 +93,7 @@ class EventView extends AbstractView {
   get form() {
     if (!this.#form) {
       this.#form = new EventFormView(this.event);
-      this.#form.tripEvent = this;
+      this.#form.event = this;
     }
     return this.#form;
   }
