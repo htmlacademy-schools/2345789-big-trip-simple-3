@@ -1,4 +1,4 @@
-import {render} from '../render.js';
+import {render} from '../framework/render.js';
 import EventView from '../view/EventView.js';
 import SortView from '../view/SortView.js';
 import {generateEvents} from '../mock/event';

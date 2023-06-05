@@ -49,6 +49,13 @@ export default class AbstractView {
     this.#element = null;
   }
 
+  delete() {
+    if (this.isActive) {
+      this.#element.remove();
+      this.removeElement();
+    }
+  }
+
   /**
    * Метод, реализующий эффект "покачивания головой"
    * @param {shakeCallback} [callback] Функция, которая будет вызвана после завершения анимации

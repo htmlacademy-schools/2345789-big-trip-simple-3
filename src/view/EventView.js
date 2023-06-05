@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import BaseView from './BaseView.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import {destinations, getOffer} from '../mock/event.js';
 import {capitalizeFirstLetter, getDate, getHumanDate, getDatetime, getHumanTime} from '../utils.js';
 import EventFormView from './EventFormView.js';
@@ -74,31 +74,39 @@ const createEventTemplate = (event) => {
   `;
 };
 
-class EventView extends BaseView {
+class EventView extends AbstractView {
+  #form = null;
+
   constructor(event) {
     super();
     this.event = event;
 
-    this._arrow = this.getElement.querySelector('.event__rollup-btn');
-    this._arrow.addEventListener('click', () => this.onArrowClick());
+    this.setArrowClickHandler(() => {
+      this.element.replaceWith(this.form.element);
+    });
   }
 
-  get getTemplate() {
+  get template() {
     return createEventTemplate(this.event);
   }
 
-  get getForm() {
-    if (!this.form) {
-      this.form = new EventFormView(this.event);
-      this.form.setTripEvent(this);
+  get form() {
+    if (!this.#form) {
+      this.#form = new EventFormView(this.event);
+      this.#form.tripEvent = this;
     }
-    return this.form;
+    return this.#form;
   }
 
-  onArrowClick() {
-    this.element.replaceWith(this.getForm.getElement);
-    this.form = undefined;
-  }
+  #arrowClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.arrowClick();
+  };
+
+  setArrowClickHandler = (callback) => {
+    this._callback.arrowClick = callback;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#arrowClickHandler);
+  };
 }
 
 export default EventView;

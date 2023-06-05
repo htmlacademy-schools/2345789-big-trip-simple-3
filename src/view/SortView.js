@@ -1,4 +1,4 @@
-import BaseView from './BaseView.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const SORT_TEMPLATE = `
 <form class="trip-events__trip-sort  trip-sort" action="#" method="get">
@@ -29,8 +29,8 @@ const SORT_TEMPLATE = `
 </form>
 `;
 
-class SortView extends BaseView {
-  get getTemplate() {
+class SortView extends AbstractView {
+  get template() {
     return SORT_TEMPLATE;
   }
 }
