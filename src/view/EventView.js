@@ -13,7 +13,6 @@ const createEventTemplate = (event) => {
       destination = destinations[i];
     }
   }
-
   const getTripTypeIconSrc = () => `img/icons/${event.type}.png`;
   const getTripEventTitle = () => `${capitalizeFirstLetter(event.type)} ${destination.name}`;
 
@@ -80,10 +79,6 @@ class EventView extends AbstractView {
   constructor(event) {
     super();
     this.event = event;
-
-    this.setArrowClickHandler(() => {
-      this.element.replaceWith(this.form.element);
-    });
   }
 
   get template() {

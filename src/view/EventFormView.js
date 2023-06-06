@@ -220,11 +220,11 @@ class EventFormView extends AbstractView {
     return createEventsFormTemplate();
   }
 
-  get event() {
+  get eventView() {
     return new EventView(this.#event);
   }
 
-  set event(event) {
+  set eventView(event) {
     this.#event = event;
   }
 
@@ -240,11 +240,10 @@ class EventFormView extends AbstractView {
 
   #cancelButtonHandler = (evt) => {
     evt.preventDefault();
-    this._callback.cancelButtonClick();
+    this.deleteEvent();
   };
 
-  setCancelButtonClickHandler = (callback) => {
-    this._callback.cancelButtonClick = callback;
+  setCancelButtonClickHandler = () => {
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#cancelButtonHandler);
   };
 
@@ -261,7 +260,7 @@ class EventFormView extends AbstractView {
   _closeForm() {
     if (this.isActive) {
       this.isActive = false;
-      this.element.replaceWith(this.event.element);
+      this.element.replaceWith(this.eventView.element);
     }
   }
 
@@ -275,7 +274,7 @@ class EventFormView extends AbstractView {
   }
 
   deleteEvent() {
-    this.event.delete();
+    this.event = undefined;
     this.delete();
   }
 }
