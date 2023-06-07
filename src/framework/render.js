@@ -47,17 +47,9 @@ function replace(newComponent, oldComponent) {
   if (!(newComponent instanceof AbstractView && oldComponent instanceof AbstractView)) {
     throw new Error('Can replace only components');
   }
-
   const newElement = newComponent.element;
   const oldElement = oldComponent.element;
-
-  const parent = oldElement.parentElement;
-
-  if (parent === null) {
-    throw new Error('Parent element doesn\'t exist');
-  }
-
-  parent.replaceChild(newElement, oldElement);
+  oldElement.replaceWith(newElement);
 }
 
 /**

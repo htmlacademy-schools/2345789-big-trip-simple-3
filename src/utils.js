@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 export const EVENT_TYPES = [
   'check-in',
   'sightseeing',
@@ -9,6 +11,12 @@ export const EVENT_TYPES = [
   'drive',
   'flight'
 ];
+
+export const actions = {
+  UPDATE_POINT: 'UPDATE_POINT',
+  ADD_POINT: 'ADD_POINT',
+  DELETE_POINT: 'DELETE_POINT',
+};
 
 export function getRandomInt(minInt, maxInt) {
   return Math.floor(Math.random() * (maxInt - minInt + 1)) + minInt;
@@ -45,4 +53,6 @@ export const getHumanDate = (date) => date.format('MMM D').toUpperCase();
 export const getDatetime = (date) => date.format('YYYY-MM-DDTHH:mm');
 
 export const getHumanTime = (date) => date.format('HH:mm');
+
+export const isDatesEqual = (dateA, dateB) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB, 'm');
 

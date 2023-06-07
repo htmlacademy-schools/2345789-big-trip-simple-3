@@ -2,7 +2,7 @@ import {render, replace, remove} from '../framework/render.js';
 import EventView from '../view/EventView.js';
 import EventFormView from '../view/EventFormView.js';
 
-const formState = {
+const formMode = {
   DEFAULT: 'DEFAULT',
   EDIT: 'EDIT',
 };
@@ -13,13 +13,15 @@ class EventPresenter {
   #pointEditorComponent;
 
   #event;
-  #state = formState.DEFAULT;
+  #mode = formMode.DEFAULT;
   #container;
   #availableDestinations;
   #availableOffers;
+  #changeData;
 
-  constructor(container, destinations, offers) {
+  constructor(container, changeData, destinations, offers) {
     this.#container = container;
+    this.#changeData = changeData;
     this.#availableDestinations = destinations;
     this.#availableOffers = offers;
     EventPresenter.allInstances.push(this);
@@ -37,20 +39,20 @@ class EventPresenter {
     this.#pointComponent.setArrowClickHandler(this.#replacePointToForm);
     this.#pointEditorComponent.setFormSubmitHandler(this.#handleFormSubmit);
     this.#pointEditorComponent.setArrowClickHandler(this.#replaceFormToPoint);
-    this.#pointEditorComponent.setCancelButtonClickHandler();
+    this.#pointEditorComponent.setDeleteButtonClickListener(this.#handleDeleteClick);
 
     if (prevPointComponent === undefined || prevPointEditorComponent === undefined) {
       render(this.#pointComponent, this.#container);
       return;
     }
 
-    if (this.#state === formState.DEFAULT) {
+    if (this.#mode === formMode.DEFAULT) {
       replace(this.#pointComponent, prevPointComponent);
     }
 
-    if (this.#state === formState.EDIT) {
+    if (this.#mode === formMode.EDIT) {
       replace(this.#pointComponent, prevPointEditorComponent);
-      this.#state = formState.DEFAULT;
+      this.#mode = formMode.DEFAULT;
     }
 
     remove(prevPointComponent);
@@ -58,7 +60,7 @@ class EventPresenter {
   }
 
   setSaving = () => {
-    if (this.#state === formState.EDIT) {
+    if (this.#mode === formMode.EDIT) {
       this.#pointEditorComponent.updateElement({
         isSaving: true,
       });
@@ -66,7 +68,7 @@ class EventPresenter {
   };
 
   setDeleting = () => {
-    if (this.#state === formState.EDIT) {
+    if (this.#mode === formMode.EDIT) {
       this.#pointEditorComponent.updateElement({
         isDeleting: true,
       });
@@ -74,7 +76,7 @@ class EventPresenter {
   };
 
   setAborting = () => {
-    if (this.#state === formState.DEFAULT) {
+    if (this.#mode === formMode.DEFAULT) {
       this.#pointComponent.shake();
       return;
     }
@@ -90,12 +92,18 @@ class EventPresenter {
   };
 
   #replaceFormToPoint = () => {
+    // this.#pointEditorComponent.reset(this.#event);
     replace(this.#pointComponent, this.#pointEditorComponent);
-    this.#state = formState.DEFAULT;
+    this.#mode = formMode.DEFAULT;
+  };
+
+  #handleDeleteClick = () => {
+    remove(this.#pointComponent);
+    remove(this.#pointEditorComponent);
   };
 
   #replacePointToForm = () => {
-    this.#state = formState.EDIT;
+    this.#mode = formMode.EDIT;
     for (let i = 0; i < EventPresenter.allInstances.length; i++) {
       if(EventPresenter.allInstances[i] !== this) {
         this.resetView(EventPresenter.allInstances[i]);
@@ -105,7 +113,7 @@ class EventPresenter {
   };
 
   #handleFormSubmit = () => {
-    throw new Error('Not yet implemented');
+    throw new Error('Hasn\'t been implemented yet');
   };
 
   destroy = () => {
@@ -114,7 +122,8 @@ class EventPresenter {
   };
 
   resetView = (form) => {
-    if (form.#state !== formState.DEFAULT) {
+    if (form.#mode !== formMode.DEFAULT) {
+      // this.#pointEditorComponent.reset(this.#event);
       form.#replaceFormToPoint();
     }
   };
