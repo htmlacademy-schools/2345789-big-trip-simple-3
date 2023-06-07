@@ -212,7 +212,7 @@ class EventFormView extends AbstractStatefulView {
     this.#setInnerHandlers();
     this.setFormSubmitHandler(this._callback.formSubmit);
     this.setArrowClickHandler(this._callback.closeForm);
-    this.setCancelButtonClickHandler();
+    this.setDeleteButtonClickListener(this._callback.deleteEvent);
   };
 
   #changeDateTo = (evt) => {
@@ -248,6 +248,7 @@ class EventFormView extends AbstractStatefulView {
         newOffers = offersByType[i].offers;
       }
     }
+
     this.#event.offers = newOffers;
     this.updateElement({
       type: newType,
@@ -324,13 +325,14 @@ class EventFormView extends AbstractStatefulView {
     this.element.addEventListener('submit', this.#formSubmitHandler);
   };
 
-  #cancelButtonHandler = (evt) => {
-    evt.preventDefault();
-    this.deleteEvent();
+  setDeleteButtonClickListener = (callback) => {
+    this._callback.deleteEvent = callback;
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteButtonClickHandler);
   };
 
-  setCancelButtonClickHandler = () => {
-    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#cancelButtonHandler);
+  #deleteButtonClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.deleteEvent(EventFormView.parseStateToEvent(this._state));
   };
 
   #arrowClickHandler = (evt) => {
@@ -344,26 +346,12 @@ class EventFormView extends AbstractStatefulView {
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#arrowClickHandler);
   };
 
-  _closeForm() {
-    if (this.isActive) {
-      this.isActive = false;
-      this.element.replaceWith(this.eventView.element);
-    }
-  }
 
-  cancelForm() {
-    this._closeForm();
-    this.element.reset();
-  }
-
-  deleteForm() {
-    this.delete();
-  }
-
-  deleteEvent() {
-    this.event = undefined;
-    this.delete();
-  }
+  // deleteEvent() {
+  //   console.log('delete');
+  //   this.delete();
+  //   this.event = undefined;
+  // }
 
   reset = (event) => {
     this.#event = event;

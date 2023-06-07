@@ -39,7 +39,7 @@ class EventPresenter {
     this.#pointComponent.setArrowClickHandler(this.#replacePointToForm);
     this.#pointEditorComponent.setFormSubmitHandler(this.#handleFormSubmit);
     this.#pointEditorComponent.setArrowClickHandler(this.#replaceFormToPoint);
-    this.#pointEditorComponent.setCancelButtonClickHandler();
+    this.#pointEditorComponent.setDeleteButtonClickListener(this.#handleDeleteClick);
 
     if (prevPointComponent === undefined || prevPointEditorComponent === undefined) {
       render(this.#pointComponent, this.#container);
@@ -95,6 +95,11 @@ class EventPresenter {
     // this.#pointEditorComponent.reset(this.#event);
     replace(this.#pointComponent, this.#pointEditorComponent);
     this.#mode = formMode.DEFAULT;
+  };
+
+  #handleDeleteClick = () => {
+    remove(this.#pointComponent);
+    remove(this.#pointEditorComponent);
   };
 
   #replacePointToForm = () => {
