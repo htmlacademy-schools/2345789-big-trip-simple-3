@@ -12,32 +12,32 @@ const destinationsNames = [
 
 export const offersList = [
   {
-    id: 1,
+    id: 0,
     title: 'Upgrade to comfort class',
     price: 60
+  },
+  {
+    id: 1,
+    title: 'Upgrade to premium class',
+    price: 120
   },
   {
     id: 2,
-    title: 'Upgrade to premium class',
-    price: 120
-  },
-  {
-    id: 3,
     title: 'Upgrade to comfort class',
     price: 60
   },
   {
-    id: 4,
+    id: 3,
     title: 'Upgrade to premium class',
     price: 120
   },
   {
-    id: 5,
+    id: 4,
     title: 'Upgrade to comfortable room',
     price: 200
   },
   {
-    id: 6,
+    id: 5,
     title: 'Upgrade for spa treatments',
     price: 100
   }
@@ -54,13 +54,13 @@ export function getOffer(id) {
 export const offersByType = [
   {
     type: 'train',
-    offers: [getOffer(1), getOffer(2)]},
+    offers: [0, 1]},
   {
     type: 'flight',
-    offers: [getOffer(3), getOffer(4)]},
+    offers: [1, 2]},
   {
     type: 'check-in',
-    offers: [getOffer(5), getOffer(6)]}
+    offers: [3, 4]}
 ];
 
 function generatePictures() {
@@ -78,7 +78,7 @@ function generatePictures() {
 const destinations = [];
 for (let i = 0; i < destinationsNames.length; i++) {
   destinations.push({
-    id: i + 1,
+    id: i,
     description: getLoremIpsumSentences(getRandomInt(1, 11)),
     name: destinationsNames[i],
     pictures: generatePictures()
@@ -107,12 +107,6 @@ export function generateEvents(numberOfEvents) {
         break;
       }
     }
-    let idOffers;
-    if (availableOffers.length) {
-      idOffers = availableOffers.map((obj) => obj.id);
-    } else {
-      idOffers = undefined;
-    }
 
     events.push(new EventModel(
       type,
@@ -120,7 +114,7 @@ export function generateEvents(numberOfEvents) {
       dateFrom,
       dateTo,
       getRandomInt(500, 2000),
-      idOffers
+      availableOffers
     ).getEvent);
   }
   return events;

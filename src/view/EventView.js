@@ -17,21 +17,17 @@ const createEventTemplate = (event) => {
   const getTripEventTitle = () => `${capitalizeFirstLetter(event.type)} ${destination.name}`;
 
   const listActiveOffers = () => {
-    if (!event.offers) {
+    if (event.offers.length === 0) {
       return `
       <li class="event__offer">
         <span class="event__offer-title">No additional offers</span>
       </li>
     `;
     }
-    const rawOffers = [];
-    for (let i = 0; i < event.offers.length; i++) {
-      rawOffers.push(getOffer(event.offers[i]));
-    }
-
+    const rawOffers = event.offers;
     const offers = [];
     for (let i = 0; i < rawOffers.length; i++) {
-      const offer = rawOffers[i];
+      const offer = getOffer(rawOffers[i]);
       offers.push(`
         <li class="event__offer">
           <span class="event__offer-title">${offer.title}</span>

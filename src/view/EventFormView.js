@@ -1,39 +1,15 @@
 import dayjs from 'dayjs';
 import EventView from '../view/EventView.js';
-import {destinations, offersByType} from '../mock/event.js';
+import {destinations, offersByType, getOffer} from '../mock/event.js';
 import {capitalizeFirstLetter, EVENT_TYPES, getDatetime} from '../utils.js';
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 
-const formState = {
+const formMode = {
   NEW: 'NEW',
   EDIT: 'EDIT',
 };
 
 const createEventsFormTemplate = (defaultEvent = null) => {
-  if (!defaultEvent) {
-    const date = dayjs().startOf('day').toISOString();
-    const defaultType = 'flight';
-    let availableOffers = [];
-    for (let i = 0; i < offersByType.length; i++) {
-      if (offersByType[i].type === defaultType) {
-        availableOffers = offersByType[i].offers;
-      }
-    }
-    defaultEvent = {
-      id: 0,
-      // eslint-disable-next-line camelcase
-      base_price: null,
-      // eslint-disable-next-line camelcase
-      date_from: date,
-      // eslint-disable-next-line camelcase
-      date_to: date,
-      destination: Object.keys(destinations)[0],
-      type: defaultType,
-      offers: availableOffers
-    };
-  }
-  const dateFrom = dayjs(defaultEvent.date_from);
-  const dateTo = dayjs(defaultEvent.date_to);
   const destination = destinations[defaultEvent.destination];
 
   const getTripTypeIconSrc = () => `img/icons/${defaultEvent.type}.png`;
@@ -58,7 +34,7 @@ const createEventsFormTemplate = (defaultEvent = null) => {
     .join('');
 
   const listOffers = () => {
-    if (!defaultEvent.offers) {
+    if (defaultEvent.offers.length === 0) {
       return `
       <li class="event__offer">
         <span class="event__offer-title">No additional offers</span>
@@ -68,13 +44,18 @@ const createEventsFormTemplate = (defaultEvent = null) => {
     const rawOffers = defaultEvent.offers;
     const offers = [];
     for (let i = 0; i < rawOffers.length; i++) {
-      const offer = rawOffers[i];
+      const offer = getOffer(rawOffers[i]);
       offers.push(`
-        <li class="event__offer">
-          <span class="event__offer-title">${offer.title}</span>
-          &plus;&euro;&nbsp;
-          <span class="event__offer-price">${offer.price}</span>
-        </li>
+        <div class="event__offer-selector">
+          <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}-1"
+            type="checkbox" name="event-offer-${offer.id}" checked
+          >
+          <label class="event__offer-label" for="event-offer-${offer.id}-1">
+            <span class="event__offer-title">${offer.title}</span>
+            &plus;&euro;&nbsp;
+            <span class="event__offer-price">${offer.price}</span>
+          </label>
+        </div>
       `);
     }
     if (offers.length) {
@@ -87,14 +68,14 @@ const createEventsFormTemplate = (defaultEvent = null) => {
       `)
     .join('');
 
-  let currentState;
+  let currentMode;
   if (defaultEvent) {
-    currentState = formState.EDIT;
+    currentMode = formMode.EDIT;
   } else {
-    currentState = formState.NEW;
+    currentMode = formMode.NEW;
   }
   const getFormButtons = () => {
-    if (currentState === formState.NEW) {
+    if (currentMode === formMode.NEW) {
       return `
          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
          <button class="event__reset-btn" type="reset">Cancel</button>
@@ -139,12 +120,12 @@ const createEventsFormTemplate = (defaultEvent = null) => {
         <div class="event__field-group  event__field-group--time">
           <label class="visually-hidden" for="event-start-time-1">From</label>
           <input class="event__input  event__input--time" id="event-start-time-1"
-            type="text" name="event-start-time" value="${getDatetime(dateFrom)}"
+            type="text" name="event-start-time" value="${getDatetime(dayjs(defaultEvent.date_from))}"
           >
           &mdash;
           <label class="visually-hidden" for="event-end-time-1">To</label>
           <input class="event__input  event__input--time" id="event-end-time-1"
-            type="text" name="event-end-time" value="${getDatetime(dateTo)}"
+            type="text" name="event-end-time" value="${getDatetime(dayjs(defaultEvent.date_to))}"
           >
         </div>
 
@@ -184,40 +165,145 @@ const createEventsFormTemplate = (defaultEvent = null) => {
   `;
 };
 
-class EventFormView extends AbstractView {
-  #event = null;
-  _state = formState.NEW;
+class EventFormView extends AbstractStatefulView {
+  #event;
+  _state;
 
-  constructor(data) {
+  constructor(event) {
     super();
-    this.#event = data;
-    this.isActive = true;
-
-    if (this.#event) {
-      this._state = formState.EDIT;
-    } else {
-      this._state = formState.NEW;
-    }
-
-    if (this._state === formState.NEW) {
-      this.setCancelButtonClickHandler(() => this.deleteForm());
-    } else {
-      this.setCancelButtonClickHandler(() => this.deleteEvent());
-      this.setArrowClickHandler(() => this.cancelForm());
-    }
-
-    document.addEventListener('keydown', (evt) => {
-      if (evt.key === 'Escape') {
-        if (this.isActive) {
-          this.isActive = false;
-          this.cancelForm();
-        }
-      }
-    });
+    this.#event = event;
+    this.defaultEvent = Object.assign({}, event);
+    this._state = EventFormView.parseEventToState(event);
+    this.#setInnerHandlers();
   }
 
+  static parseEventToState = (event) => ({...event,
+    isDestination: event.destination !== null
+  });
+
+  static parseStateToEvent = (state) => {
+    const event = {...state};
+
+    if (!event.isDestination) {
+      event.destination = null;
+    }
+
+    delete event.isDestination;
+
+    return event;
+  };
+
+  #setInnerHandlers = () => {
+    this.element.querySelector('.event__type-list')
+      .addEventListener('change', this.#changeType);
+    this.element.querySelector('.event__input--destination')
+      .addEventListener('input', this.#changeDestination);
+    this.element.querySelector('.event__input--price')
+      .addEventListener('input', this.#changePrice);
+    this.element.querySelector('.event__available-offers')
+      .addEventListener('input', this.#changeOffers);
+    this.element.querySelector('#event-start-time-1')
+      .addEventListener('input', this.#changeDateFrom);
+    this.element.querySelector('#event-end-time-1')
+      .addEventListener('input', this.#changeDateTo);
+  };
+
+  _restoreHandlers = () => {
+    this.#setInnerHandlers();
+    this.setFormSubmitHandler(this._callback.formSubmit);
+    this.setArrowClickHandler(this._callback.closeForm);
+    this.setCancelButtonClickHandler();
+  };
+
+  #changeDateTo = (evt) => {
+    evt.preventDefault();
+    const fieldset = this.element.querySelector('.event__field-group--time');
+    const newDate = fieldset.querySelector('#event-start-time-1').value;
+    // eslint-disable-next-line camelcase
+    this.#event.date_to = newDate;
+    this._setState({
+      dateTo: newDate,
+    });
+  };
+
+  #changeDateFrom = (evt) => {
+    evt.preventDefault();
+    const fieldset = this.element.querySelector('.event__field-group--time');
+    const newDate = fieldset.querySelector('#event-end-time-1').value;
+    // eslint-disable-next-line camelcase
+    this.#event.date_from = newDate;
+    this._setState({
+      dateFrom: newDate
+    });
+  };
+
+  #changeType = (evt) => {
+    evt.preventDefault();
+    const fieldset = this.element.querySelector('.event__type-list');
+    const newType = fieldset.querySelector('input:checked').value;
+    this.#event.type = newType;
+    let newOffers = [];
+    for (let i = 0; i < offersByType.length; i++) {
+      if (offersByType[i].type === newType) {
+        newOffers = offersByType[i].offers;
+      }
+    }
+    this.#event.offers = newOffers;
+    this.updateElement({
+      type: newType,
+      offers: newOffers,
+    });
+  };
+
+  #changePrice = (evt) => {
+    evt.preventDefault();
+    const fieldset = this.element.querySelector('.event__field-group--price');
+    const newPrice = fieldset.querySelector('#event-price-1').value;
+    // eslint-disable-next-line camelcase
+    this.#event.base_price = newPrice;
+    this._setState({
+      basePrice: newPrice,
+    });
+  };
+
+  #changeOffers = (evt) => {
+    evt.preventDefault();
+    const offersField = this.element.querySelector('.event__available-offers');
+    const checkboxes = offersField.querySelectorAll('.event__offer-checkbox:checked');
+
+    const checkedIds = [];
+
+    checkboxes.forEach((checkbox) => {
+      checkedIds.push(checkbox.id);
+    });
+
+    this._setState({
+      offers: checkedIds,
+    });
+  };
+
+  #changeDestination = (evt) => {
+    evt.preventDefault();
+    const newDestinationName = event.target.value;
+    let newDestination = null;
+    Object.values(destinations).forEach((destination) => {
+      if (newDestinationName === destination.name) {
+        newDestination = destination;
+        this.updateElement({
+          destination: newDestination,
+          isDestination: true,
+        });
+      }
+    });
+
+    this._setState({
+      destination: {name: newDestinationName},
+      isDestination: false,
+    });
+  };
+
   get template() {
-    return createEventsFormTemplate();
+    return createEventsFormTemplate(this.#event);
   }
 
   get eventView() {
@@ -230,7 +316,7 @@ class EventFormView extends AbstractView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this._callback.formSubmit();
+    this._callback.formSubmit(EventFormView.parseStateToEvent(this._state));
   };
 
   setFormSubmitHandler = (callback) => {
@@ -249,11 +335,12 @@ class EventFormView extends AbstractView {
 
   #arrowClickHandler = (evt) => {
     evt.preventDefault();
-    this._callback.arrowClick();
+    this.reset(this.defaultEvent);
+    this._callback.closeForm();
   };
 
   setArrowClickHandler = (callback) => {
-    this._callback.arrowClick = callback;
+    this._callback.closeForm = callback;
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#arrowClickHandler);
   };
 
@@ -277,6 +364,13 @@ class EventFormView extends AbstractView {
     this.event = undefined;
     this.delete();
   }
+
+  reset = (event) => {
+    this.#event = event;
+    this.updateElement(
+      EventFormView.parseEventToState(event),
+    );
+  };
 }
 
 export default EventFormView;
