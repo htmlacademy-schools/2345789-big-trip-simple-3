@@ -1,102 +1,82 @@
-import dayjs from 'dayjs';
 import AbstractView from '../framework/view/abstract-view.js';
-import {destinations, getOffer} from '../mock/event.js';
-import {capitalizeFirstLetter, getDate, getHumanDate, getDatetime, getHumanTime} from '../utils.js';
-import EventFormView from './EventFormView.js';
+import {getDate, getHumanDate, getDatetime, getHumanTime, capitalizeFirstLetter} from '../utils.js';
+import dayjs from 'dayjs';
 
-const createEventTemplate = (event) => {
-  const dateTo = dayjs(event.date_to);
-  const dateFrom = dayjs(event.date_from);
-  let destination;
-  for (let i = 0; i < destinations.length; i++) {
-    if (destinations[i].id === event.destination) {
-      destination = destinations[i];
-    }
-  }
-  const getTripTypeIconSrc = () => `img/icons/${event.type}.png`;
-  const getTripEventTitle = () => `${capitalizeFirstLetter(event.type)} ${destination.name}`;
+const createOffersTemplate = (offersByType, type, offers) => {
+  const offersByCurrentType = offersByType.find((element) => element.type === type).offers;
+  const offersById = offersByCurrentType.filter((element) => offers.includes(element.id));
 
-  const listActiveOffers = () => {
-    if (event.offers.length === 0) {
-      return `
-      <li class="event__offer">
-        <span class="event__offer-title">No additional offers</span>
-      </li>
-    `;
-    }
-    const rawOffers = event.offers;
-    const offers = [];
-    for (let i = 0; i < rawOffers.length; i++) {
-      const offer = getOffer(rawOffers[i]);
-      offers.push(`
-        <li class="event__offer">
-          <span class="event__offer-title">${offer.title}</span>
-          &plus;&euro;&nbsp;
-          <span class="event__offer-price">${offer.price}</span>
-        </li>
-      `);
-    }
-    if (offers.length) {
-      return offers.join('');
-    }
-  };
+  return offersById.map((offer) => {
+    const { title, price } = offer;
+    return (
+      `<li class="event__offer">
+        <span class="event__offer-title">${title}</span>
+        &plus;&euro;&nbsp;
+        <span class="event__offer-price">${price}</span>
+      </li>`
+    );
+  }).join('');
+};
 
-  return `
-    <div class="event">
-      <time class="event__date" datetime="${getDate(dateFrom)}">${getHumanDate(dateFrom)}</time>
-      <div class="event__type">
-        <img class="event__type-icon" width="42" height="42" src="${getTripTypeIconSrc()}" alt="Event type icon">
-      </div>
-      <h3 class="event__title">${getTripEventTitle()}</h3>
-      <div class="event__schedule">
-        <p class="event__time">
-          <time class="event__start-time" datetime="${getDatetime(dateFrom)}">${getHumanTime(dateFrom)}</time>
-          &mdash;
-          <time class="event__end-time" datetime="${getDatetime(dateTo)}">${getHumanTime(dateTo)}</time>
+const getPointRouteTemplate = (pointRoute,destinations,offersByType) => {
+  const {basePrice,dateFrom,dateTo,destination,type,offers} = pointRoute;
+  const destinationName = destinations.find((element) => element.id === destination).name;
+
+  return (
+    `<li class="trip-events__item">
+      <div class="event">
+        <time class="event__date" datetime="${getDate(dayjs(dateFrom))}">${getHumanDate(dayjs(dateFrom))}</time>
+        <div class="event__type">
+          <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
+        </div>
+        <h3 class="event__title">${type} ${capitalizeFirstLetter(destinationName)}</h3>
+        <div class="event__schedule">
+          <p class="event__time">
+            <time class="event__start-time" datetime="${getDatetime(dayjs(dateFrom))}">${getHumanTime(dayjs(dateFrom))}</time>
+            &mdash;
+            <time class="event__end-time" datetime="${getDatetime(dayjs(dateTo))}">${getHumanTime(dayjs(dateTo))}</time>
+          </p>
+        </div>
+        <p class="event__price">
+          &euro;&nbsp;<span class="event__price-value">${basePrice}</span>
         </p>
+        <h4 class="visually-hidden">Offers:</h4>
+        <ul class="event__selected-offers">
+          ${createOffersTemplate(offersByType, type, offers)}
+        </ul>
+        <button class="event__rollup-btn" type="button">
+          <span class="visually-hidden">Open event</span>
+        </button>
       </div>
-      <p class="event__price">
-        &euro;&nbsp;<span class="event__price-value">${event.base_price}</span>
-      </p>
-      <h4 class="visually-hidden">Offers:</h4>
-      <ul class="event__selected-offers">
-        ${listActiveOffers()}
-      </ul>
-      <button class="event__rollup-btn" type="button">
-        <span class="visually-hidden">Open event</span>
-      </button>
-    </div>
-  `;
+    </li>`
+  );
 };
 
 class EventView extends AbstractView {
-  #form = null;
 
-  constructor(event) {
+  #routePoint = null;
+  #destinations = null;
+  #offersByType = null;
+
+  constructor (routePoint,destinations,offers) {
     super();
-    this.event = event;
+    this.#routePoint = routePoint;
+    this.#destinations = destinations;
+    this.#offersByType = offers;
   }
 
   get template() {
-    return createEventTemplate(this.event);
+    return getPointRouteTemplate(this.#routePoint,this.#destinations,this.#offersByType);
   }
 
-  get form() {
-    if (!this.#form) {
-      this.#form = new EventFormView(this.event);
-      this.#form.event = this;
-    }
-    return this.#form;
-  }
-
-  #arrowClickHandler = (evt) => {
-    evt.preventDefault();
-    this._callback.arrowClick();
+  setFormOpen = (callback) => {
+    this._callback.formOpen = callback;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#formOpenHandler);
   };
 
-  setArrowClickHandler = (callback) => {
-    this._callback.arrowClick = callback;
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#arrowClickHandler);
+  #formOpenHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.formOpen();
   };
 }
 

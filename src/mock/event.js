@@ -1,6 +1,6 @@
 import {EVENT_TYPES, getRandomElementFromArray} from '../utils.js';
 import {getRandomInt, getLoremIpsumSentences} from '../utils.js';
-import EventModel from '../model/event.js';
+import EventModel from '../model/EventModel.js';
 
 const destinationsNames = [
   'London',

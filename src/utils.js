@@ -12,10 +12,28 @@ export const EVENT_TYPES = [
   'flight'
 ];
 
-export const actions = {
-  UPDATE_POINT: 'UPDATE_POINT',
-  ADD_POINT: 'ADD_POINT',
-  DELETE_POINT: 'DELETE_POINT',
+export const FILTER_MODE = {
+  EVERYTHING: 'everything',
+  FUTURE: 'future'
+};
+
+export const UPDATE_MODES = {
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR',
+  INIT: 'INIT'
+};
+
+export const ACTIONS = {
+  UPDATE_POINT: 'UPDATE_EVENT',
+  ADD_POINT: 'ADD_EVENT',
+  DELETE_POINT: 'DELETE_EVENT',
+  CLOSE_FORM: 'CLOSE_FORM',
+};
+
+export const SORT_MODE = {
+  DAY: 'day',
+  PRICE: 'price'
 };
 
 export function getRandomInt(minInt, maxInt) {
@@ -54,5 +72,28 @@ export const getDatetime = (date) => date.format('YYYY-MM-DDTHH:mm');
 
 export const getHumanTime = (date) => date.format('HH:mm');
 
-export const isDatesEqual = (dateA, dateB) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB, 'm');
+export const isEventFuture = (dueDate) => dayjs(dueDate).isAfter(dayjs(), 'D') || dayjs(dueDate).isSame(dayjs(), 'D');
+
+export const getAuthorizationKey = (length) => {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
+};
+
+export const filter = {
+  [FILTER_MODE.EVERYTHING]: (points) => points,
+  [FILTER_MODE.FUTURE]: (points) => points.filter((point) => isEventFuture(point.dateFrom)),
+};
+
+export const sortByDay = (pointA, pointB) => dayjs(pointA.dateFrom).diff(dayjs(pointB.dateFrom));
+
+export const sortByPrice = (pointA, pointB) => pointB.basePrice - pointA.basePrice;
+
+export const isOfferChecked = (offers, id) => offers.includes(id);
 
